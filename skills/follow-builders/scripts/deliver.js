@@ -58,6 +58,16 @@ async function getDigestText() {
   return Buffer.concat(chunks).toString('utf-8');
 }
 
+// Get HTML content from --html flag if provided
+function getHtmlFilePath() {
+  const args = process.argv.slice(2);
+  const htmlIdx = args.indexOf('--html');
+  if (htmlIdx !== -1 && args[htmlIdx + 1]) {
+    return args[htmlIdx + 1];
+  }
+  return null;
+}
+
 // -- Telegram Delivery -------------------------------------------------------
 
 // Sends the digest via Telegram Bot API.
@@ -126,21 +136,25 @@ async function sendTelegram(text, botToken, chatId) {
 
 // Sends the digest via Resend's email API.
 // The user provides their own Resend API key and email address.
-async function sendEmail(text, apiKey, toEmail) {
+async function sendEmail(text, apiKey, toEmail, html = null) {
+  const body = {
+    from: 'AI Builders Digest <digest@resend.dev>',
+    to: [toEmail],
+    subject: `AI Builders Digest — ${new Date().toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    })}`,
+    text: text
+  };
+  if (html) {
+    body.html = html;
+  }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`
     },
-    body: JSON.stringify({
-      from: 'AI Builders Digest <digest@resend.dev>',
-      to: [toEmail],
-      subject: `AI Builders Digest — ${new Date().toLocaleDateString('en-US', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-      })}`,
-      text: text
-    })
+    body: JSON.stringify(body)
   });
 
   if (!res.ok) {
@@ -162,6 +176,13 @@ async function main() {
 
   const delivery = config.delivery || { method: 'stdout' };
   const digestText = await getDigestText();
+
+  // Check for HTML file
+  let htmlContent = null;
+  const htmlFile = getHtmlFilePath();
+  if (htmlFile && existsSync(htmlFile)) {
+    htmlContent = await readFile(htmlFile, 'utf-8');
+  }
 
   if (!digestText || digestText.trim().length === 0) {
     console.log(JSON.stringify({ status: 'skipped', reason: 'Empty digest text' }));
@@ -189,7 +210,7 @@ async function main() {
         const toEmail = delivery.email;
         if (!apiKey) throw new Error('RESEND_API_KEY not found in .env');
         if (!toEmail) throw new Error('delivery.email not found in config.json');
-        await sendEmail(digestText, apiKey, toEmail);
+        await sendEmail(digestText, apiKey, toEmail, htmlContent);
         console.log(JSON.stringify({
           status: 'ok',
           method: 'email',

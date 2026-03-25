@@ -17,7 +17,7 @@ description: Use when the user wants to optimize, improve, or refine Claude Code
 | **CLAUDE.md** | 项目根目录或 `~/.claude/CLAUDE.md` | 无 description，频繁加载 |
 | **Agent** | `~/.claude/agents/<name>.md` | 有 model/tools 限制，子代理角色 |
 | **Rules** | `.claude/rules/<name>.md` | 可选 paths 字段，路径范围限定 |
-| **Commands** | `.claude/commands/<name>.md` | 有 description，支持 !`cmd` 和 $ARGUMENTS |
+| **Commands** | `.claude/commands/<name>.md` | 有 description，支持 shell 命令嵌入和 $ARGUMENTS |
 
 ## 工作流程
 
@@ -335,8 +335,8 @@ argument-hint: [参数说明]  # 可选
 ## 命令内容
 
 支持动态内容：
-- !`shell command` — 执行 shell 并嵌入输出
-- $ARGUMENTS — 用户传入的参数
+- 感叹号+反引号 — 执行 shell 并嵌入输出 (语法: `!` + `cmd`)
+- `$ARGUMENTS` — 用户传入的参数
 ```
 
 ### Commands 优化重点
@@ -346,7 +346,7 @@ argument-hint: [参数说明]  # 可选
    - 包含触发场景关键词
 
 2. **动态内容高效**
-   - !`cmd` 输出可能很长，考虑限制
+   - shell 命令输出可能很长，考虑限制
    - 使用 `| head -20` 等截断
    - 只嵌入必要信息
 
