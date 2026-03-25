@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Browser navigated to httpbin.org/forms/post",
+      "passed": true,
+      "evidence": "cmux browser surface:5 navigate https://httpbin.org/forms/post executed"
+    },
+    {
+      "text": "wait --load-state complete used before filling",
+      "passed": true,
+      "evidence": "wait command used before form fill operations"
+    },
+    {
+      "text": "fill commands used for all form fields",
+      "passed": true,
+      "evidence": "fill used for custname, custtel, custemail, delivery, comments; select used for size=medium"
+    },
+    {
+      "text": "click used on submit button with --snapshot-after",
+      "passed": true,
+      "evidence": "click on submit button with --snapshot-after executed"
+    },
+    {
+      "text": "wait used to wait for result page",
+      "passed": true,
+      "evidence": "wait for result page after form submission"
+    },
+    {
+      "text": "get title and get text captured from result page",
+      "passed": true,
+      "evidence": "Result page URL: https://httpbin.org/post with all form fields confirmed"
+    },
+    {
+      "text": "Results saved to /tmp/httpbin_form_result.txt",
+      "passed": true,
+      "evidence": "Output file created with form submission data"
+    }
+  ],
+  "summary": {"passed": 7, "failed": 0, "total": 7, "pass_rate": 1.0}
+}

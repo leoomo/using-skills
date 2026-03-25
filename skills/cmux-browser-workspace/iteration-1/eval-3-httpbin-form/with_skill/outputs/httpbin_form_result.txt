@@ -1,0 +1,10 @@
+Page URL after submit: https://httpbin.org/post
+Page title: (none)
+
+Form data confirmed in response:
+  - comments: "Great service"
+  - custemail: "test@example.com"
+  - custname: "Test User"
+  - custtel: "1234567890"
+  - delivery: "12:30"
+  - size: "medium"

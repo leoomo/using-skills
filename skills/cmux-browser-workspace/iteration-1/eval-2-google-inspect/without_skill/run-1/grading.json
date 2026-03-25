@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Browser opened with cmux browser open",
+      "passed": false,
+      "evidence": "No cmux commands executed. MCP tools were denied."
+    },
+    {
+      "text": "wait --load-state complete used before inspection",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "snapshot command returned DOM structure",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "get title returned Google",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "screenshot saved to /tmp/google_homepage.png",
+      "passed": false,
+      "evidence": "No file created."
+    },
+    {
+      "text": "tab closed after operations",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    }
+  ],
+  "summary": {"passed": 0, "failed": 6, "total": 6, "pass_rate": 0.0}
+}

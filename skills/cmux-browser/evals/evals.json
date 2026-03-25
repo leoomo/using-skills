@@ -1,0 +1,48 @@
+{
+  "skill_name": "cmux-browser",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Go to https://example.com and extract the page title, heading text, and the link URL and text of the first link on the page. Save the results to /tmp/example_com_info.txt.",
+      "expected_output": "A text file at /tmp/example_com_info.txt containing the page title, h1 heading text, and the first link's URL and text.",
+      "files": [],
+      "expectations": [
+        "Browser opened successfully with cmux browser open",
+        "Page loaded and wait command was used",
+        "get title returned Example Domain",
+        "get text h1 returned the heading content",
+        "find first link extracted href and text",
+        "Results written to /tmp/example_com_info.txt"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Open https://www.google.com in a browser, wait for it to load, take a snapshot of the page, get the page title, and save a screenshot to /tmp/google_homepage.png. Then close the browser.",
+      "expected_output": "A snapshot showing the Google DOM structure, the page title 'Google', and a screenshot file at /tmp/google_homepage.png.",
+      "files": [],
+      "expectations": [
+        "Browser opened with cmux browser open",
+        "wait --load-state complete used before inspection",
+        "snapshot command returned DOM structure",
+        "get title returned 'Google'",
+        "screenshot saved to /tmp/google_homepage.png",
+        "tab closed after operations"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Browse to https://httpbin.org/forms/post, fill out the form fields (custname: Test User, custtel: 1234567890, custemail: test@example.com, size: medium, delivery: 12:30, comments: Great service), submit the form by clicking the submit button, wait for the result page to load, and save the page title and visible text content to /tmp/httpbin_form_result.txt.",
+      "expected_output": "A text file showing the submitted form result page title and visible text from httpbin.org.",
+      "files": [],
+      "expectations": [
+        "Browser navigated to httpbin.org/forms/post",
+        "wait --load-state complete used before filling",
+        "fill commands used for all form fields",
+        "click used on submit button with --snapshot-after",
+        "wait used to wait for result page",
+        "get title and get text captured from result page",
+        "Results saved to /tmp/httpbin_form_result.txt"
+      ]
+    }
+  ]
+}

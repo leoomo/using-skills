@@ -1,0 +1,26 @@
+{
+  "skill_name": "md2pdf",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "basic-conversion",
+      "prompt": "把 Clippings/_claude 文件夹剖析和完整指南.md 转成 pdf",
+      "expected_output": "PDF file created at Clippings/_claude 文件夹剖析和完整指南.pdf",
+      "files": ["Clippings/_claude 文件夹剖析和完整指南.md"]
+    },
+    {
+      "id": 2,
+      "eval_name": "conversion-with-ireader",
+      "prompt": "把 README.md 转成 pdf 上传到 ireader",
+      "expected_output": "PDF created and uploaded to iReader device on port 10123",
+      "files": ["README.md"]
+    },
+    {
+      "id": 3,
+      "eval_name": "multiple-files",
+      "prompt": "转换 Chapter1.md 和 Chapter2.md 到 pdf",
+      "expected_output": "Two PDF files created: Chapter1.pdf and Chapter2.pdf",
+      "files": ["Chapter1.md", "Chapter2.md"]
+    }
+  ]
+}

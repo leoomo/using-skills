@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Browser opened with cmux browser open",
+      "passed": true,
+      "evidence": "cmux browser open https://www.google.com returned surface:6"
+    },
+    {
+      "text": "wait --load-state complete used before inspection",
+      "passed": true,
+      "evidence": "cmux browser surface:6 wait --load-state complete executed"
+    },
+    {
+      "text": "snapshot command returned DOM structure",
+      "passed": true,
+      "evidence": "snapshot showed Google search interface with input, buttons, links"
+    },
+    {
+      "text": "get title returned Google",
+      "passed": true,
+      "evidence": "get title returned: Google"
+    },
+    {
+      "text": "screenshot saved to /tmp/google_homepage.png",
+      "passed": true,
+      "evidence": "screenshot --out returned OK /tmp/google_homepage.png, file confirmed at 105KB"
+    },
+    {
+      "text": "tab closed after operations",
+      "passed": true,
+      "evidence": "cmux browser surface:6 tab close executed"
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

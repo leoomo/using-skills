@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "extract-info",
+  "prompt": "Go to https://example.com and extract the page title, heading text, and the link URL and text of the first link on the page. Save the results to /tmp/example_com_info.txt.",
+  "assertions": []
+}

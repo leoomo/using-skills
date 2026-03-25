@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Browser opened successfully with cmux browser open",
+      "passed": true,
+      "evidence": "cmux browser open https://example.com returned surface:7"
+    },
+    {
+      "text": "Page loaded and wait command was used",
+      "passed": true,
+      "evidence": "cmux browser surface:7 wait --load-state complete executed"
+    },
+    {
+      "text": "get title returned Example Domain",
+      "passed": true,
+      "evidence": "get title output: Example Domain"
+    },
+    {
+      "text": "get text h1 returned heading content",
+      "passed": true,
+      "evidence": "get text h1 returned: Example Domain"
+    },
+    {
+      "text": "find first link extracted href and text",
+      "passed": true,
+      "evidence": "get attr a --attr href returned https://iana.org/domains/example, get text a returned Learn more"
+    },
+    {
+      "text": "Results written to /tmp/example_com_info.txt",
+      "passed": true,
+      "evidence": "Output file created at /tmp/example_com_info.txt"
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

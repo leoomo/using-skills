@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "google-inspect",
+  "prompt": "Open https://www.google.com in a browser, wait for it to load, take a snapshot of the page, get the page title, and save a screenshot to /tmp/google_homepage.png. Then close the browser.",
+  "assertions": []
+}

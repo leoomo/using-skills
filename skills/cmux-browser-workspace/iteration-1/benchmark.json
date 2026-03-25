@@ -1,0 +1,348 @@
+{
+  "metadata": {
+    "skill_name": "cmux-browser",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-24T03:39:26Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 132.9,
+        "tokens": 35182,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser opened successfully with cmux browser open",
+          "passed": true,
+          "evidence": "cmux browser open https://example.com returned surface:7"
+        },
+        {
+          "text": "Page loaded and wait command was used",
+          "passed": true,
+          "evidence": "cmux browser surface:7 wait --load-state complete executed"
+        },
+        {
+          "text": "get title returned Example Domain",
+          "passed": true,
+          "evidence": "get title output: Example Domain"
+        },
+        {
+          "text": "get text h1 returned heading content",
+          "passed": true,
+          "evidence": "get text h1 returned: Example Domain"
+        },
+        {
+          "text": "find first link extracted href and text",
+          "passed": true,
+          "evidence": "get attr a --attr href returned https://iana.org/domains/example, get text a returned Learn more"
+        },
+        {
+          "text": "Results written to /tmp/example_com_info.txt",
+          "passed": true,
+          "evidence": "Output file created at /tmp/example_com_info.txt"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 52.8,
+        "tokens": 28635,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser opened with cmux browser open",
+          "passed": true,
+          "evidence": "cmux browser open https://www.google.com returned surface:6"
+        },
+        {
+          "text": "wait --load-state complete used before inspection",
+          "passed": true,
+          "evidence": "cmux browser surface:6 wait --load-state complete executed"
+        },
+        {
+          "text": "snapshot command returned DOM structure",
+          "passed": true,
+          "evidence": "snapshot showed Google search interface with input, buttons, links"
+        },
+        {
+          "text": "get title returned Google",
+          "passed": true,
+          "evidence": "get title returned: Google"
+        },
+        {
+          "text": "screenshot saved to /tmp/google_homepage.png",
+          "passed": true,
+          "evidence": "screenshot --out returned OK /tmp/google_homepage.png, file confirmed at 105KB"
+        },
+        {
+          "text": "tab closed after operations",
+          "passed": true,
+          "evidence": "cmux browser surface:6 tab close executed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 122.1,
+        "tokens": 33711,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser navigated to httpbin.org/forms/post",
+          "passed": true,
+          "evidence": "cmux browser surface:5 navigate https://httpbin.org/forms/post executed"
+        },
+        {
+          "text": "wait --load-state complete used before filling",
+          "passed": true,
+          "evidence": "wait command used before form fill operations"
+        },
+        {
+          "text": "fill commands used for all form fields",
+          "passed": true,
+          "evidence": "fill used for custname, custtel, custemail, delivery, comments; select used for size=medium"
+        },
+        {
+          "text": "click used on submit button with --snapshot-after",
+          "passed": true,
+          "evidence": "click on submit button with --snapshot-after executed"
+        },
+        {
+          "text": "wait used to wait for result page",
+          "passed": true,
+          "evidence": "wait for result page after form submission"
+        },
+        {
+          "text": "get title and get text captured from result page",
+          "passed": true,
+          "evidence": "Result page URL: https://httpbin.org/post with all form fields confirmed"
+        },
+        {
+          "text": "Results saved to /tmp/httpbin_form_result.txt",
+          "passed": true,
+          "evidence": "Output file created with form submission data"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": 30.3,
+        "tokens": 25094,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser opened with cmux browser open",
+          "passed": false,
+          "evidence": "No cmux commands executed. MCP tools (chrome-devtools, playwright) were denied permission."
+        },
+        {
+          "text": "wait --load-state complete used before inspection",
+          "passed": false,
+          "evidence": "No browser interaction occurred due to MCP permission denial."
+        },
+        {
+          "text": "get title returned correct title",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "Results written to /tmp/example_com_info.txt",
+          "passed": false,
+          "evidence": "No file created."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 20.2,
+        "tokens": 25061,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser opened with cmux browser open",
+          "passed": false,
+          "evidence": "No cmux commands executed. MCP tools were denied."
+        },
+        {
+          "text": "wait --load-state complete used before inspection",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "snapshot command returned DOM structure",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "get title returned Google",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "screenshot saved to /tmp/google_homepage.png",
+          "passed": false,
+          "evidence": "No file created."
+        },
+        {
+          "text": "tab closed after operations",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 17.1,
+        "tokens": 24768,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Browser navigated to httpbin.org/forms/post",
+          "passed": false,
+          "evidence": "No cmux commands executed. MCP tools were denied."
+        },
+        {
+          "text": "wait --load-state complete used before filling",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "fill commands used for all form fields",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "click used on submit button with --snapshot-after",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "wait used to wait for result page",
+          "passed": false,
+          "evidence": "No browser interaction occurred."
+        },
+        {
+          "text": "Results saved to /tmp/httpbin_form_result.txt",
+          "passed": false,
+          "evidence": "No file created."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 102.6,
+        "stddev": 43.4648,
+        "min": 52.8,
+        "max": 132.9
+      },
+      "tokens": {
+        "mean": 32509.3333,
+        "stddev": 3434.9388,
+        "min": 28635,
+        "max": 35182
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "time_seconds": {
+        "mean": 22.5333,
+        "stddev": 6.9024,
+        "min": 17.1,
+        "max": 30.3
+      },
+      "tokens": {
+        "mean": 24974.3333,
+        "stddev": 179.4501,
+        "min": 24768,
+        "max": 25094
+      }
+    },
+    "delta": {
+      "pass_rate": "+1.00",
+      "time_seconds": "+80.1",
+      "tokens": "+7535"
+    }
+  },
+  "notes": []
+}

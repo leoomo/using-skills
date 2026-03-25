@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Browser navigated to httpbin.org/forms/post",
+      "passed": false,
+      "evidence": "No cmux commands executed. MCP tools were denied."
+    },
+    {
+      "text": "wait --load-state complete used before filling",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "fill commands used for all form fields",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "click used on submit button with --snapshot-after",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "wait used to wait for result page",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "Results saved to /tmp/httpbin_form_result.txt",
+      "passed": false,
+      "evidence": "No file created."
+    }
+  ],
+  "summary": {"passed": 0, "failed": 6, "total": 6, "pass_rate": 0.0}
+}

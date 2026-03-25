@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "httpbin-form",
+  "prompt": "Browse to https://httpbin.org/forms/post, fill out the form fields (custname: Test User, custtel: 1234567890, custemail: test@example.com, size: medium, delivery: 12:30, comments: Great service), submit the form by clicking the submit button, wait for the result page to load, and save the page title and visible text content to /tmp/httpbin_form_result.txt.",
+  "assertions": []
+}

@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "Browser opened with cmux browser open",
+      "passed": false,
+      "evidence": "No cmux commands executed. MCP tools (chrome-devtools, playwright) were denied permission."
+    },
+    {
+      "text": "wait --load-state complete used before inspection",
+      "passed": false,
+      "evidence": "No browser interaction occurred due to MCP permission denial."
+    },
+    {
+      "text": "get title returned correct title",
+      "passed": false,
+      "evidence": "No browser interaction occurred."
+    },
+    {
+      "text": "Results written to /tmp/example_com_info.txt",
+      "passed": false,
+      "evidence": "No file created."
+    }
+  ],
+  "summary": {"passed": 0, "failed": 4, "total": 4, "pass_rate": 0.0}
+}
