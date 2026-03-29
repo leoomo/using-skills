@@ -15,6 +15,13 @@ A collection of custom skills extending Claude Code's capabilities across docume
 | **md2epub** | Convert Markdown to EPUB format for e-readers. Supports batch folder conversion and automatic image downloading. |
 | **md2kindle** | Convert Markdown to AZW3 format for Kindle devices. Requires Calibre. |
 
+### 📐 Diagram & Modeling
+
+| Skill | Description |
+|-------|-------------|
+| **drawio** | Create diagrams, flowcharts, architecture diagrams, ER diagrams, sequence diagrams, and more as native `.drawio` files. Export to PNG, SVG, or PDF with embedded editable XML. |
+| **solar-storage-diagram** | Specialized for solar+energy storage systems (光储系统). Create system architecture diagrams, electrical single-line diagrams, and ESS layout diagrams. Inherits all drawio capabilities. |
+
 ### 🎨 Frontend & Design
 
 | Skill | Description |
