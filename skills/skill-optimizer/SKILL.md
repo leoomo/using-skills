@@ -334,10 +334,9 @@ argument-hint: [参数说明]  # 可选
 
 ## 命令内容
 
-支持动态内容：
-- 感叹号+反引号 — 执行 shell 并嵌入输出 (语法: `!` + `cmd`)
-- `$ARGUMENTS` — 用户传入的参数
-```
+Commands 支持动态内容替换：
+- SHELL_PREFIX：使用感叹号前缀执行 shell 命令并嵌入输出
+- USER_ARGS：用户传入的参数用 $ARGUMENTS 表示
 
 ### Commands 优化重点
 

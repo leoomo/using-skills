@@ -397,6 +397,9 @@ Read `config.language` from the JSON:
 
 Read `config.delivery.method` and `config.emailHtml` (top-level, not in delivery object) from the JSON:
 
+**IMPORTANT: Before delivering, save the stats for Obsidian frontmatter.**
+Update the config file with the stats from prepare-digest.js output (xBuilders, totalTweets, podcastEpisodes, blogPosts). Read the existing config, add `_stats` field with the actual values from your prepare-digest.js output, and write it back.
+
 **If "telegram":**
 ```bash
 echo '<your digest text>' > /tmp/fb-digest.txt
@@ -427,7 +430,7 @@ Generate THREE versions:
      </body>
      ```
 
-3. **Markdown** (`/tmp/fb-digest.md`): The FULL digest content in Markdown format (same content you would output for stdout mode). This file is used for Obsidian vault saving. Do NOT write a placeholder here — it must contain the complete digest.
+3. **Markdown** (`/tmp/fb-digest.md`): The FULL digest content in Markdown format. **This must be identical to the HTML email content** — the same bilingual remixed digest you generated for the HTML. Each builder should have both English and Chinese versions in the same card/block structure. This file is used for Obsidian vault saving. **Do NOT include YAML frontmatter in this file** — save-to-obsidian.js will add it automatically. Do NOT write a different or simplified version — it must contain the complete digest with all English and Chinese content.
 
 Then deliver:
 ```bash
