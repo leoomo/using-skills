@@ -1,52 +1,92 @@
 ---
 name: md2epub
-description: Convert Markdown files to EPUB format for e-readers. Use when the user wants to convert .md files to EPUB format for reading on Kindle, iReader, or other e-book devices. Supports batch folder conversion and automatically downloads external images. If the user mentions 'ireader', automatically scans the network for port 10123 and uploads the generated EPUB.
+description: Convert Markdown to EPUB for e-readers with Kindle email support. Use when user wants to convert .md files to EPUB format, send to Kindle, or upload to iReader. Triggered by keywords like "convert markdown to epub", "md to epub", "send to kindle", "ebook", "ireader". Auto-handles Obsidian wikilinks and downloads external images concurrently.
 ---
 
 # Markdown to EPUB Converter
 
-Convert Markdown (especially Obsidian-flavored) to EPUB format for comfortable reading on e-readers, tablets, and phones.
+Convert Obsidian-flavored Markdown to EPUB format, with Kindle email delivery built-in.
+
+## Setup
+
+Dependencies managed by uv. Run once to install:
+
+```bash
+cd ~/.claude/skills/md2epub && uv sync
+```
 
 ## Usage
 
-### Single File
+All commands must be run from the md2epub directory:
+
 ```bash
-python3 -m md2epub "path/to/file.md" [output.epub]
+cd ~/.claude/skills/md2epub
+```
+
+### Single File
+
+```bash
+uv run python -m src "/path/to/file.md" [output.epub]
 ```
 
 ### Batch Folder
+
 ```bash
-python3 -m md2epub "path/to/folder/" [output.epub]
+uv run python -m src "/path/to/folder/" [output.epub]
 ```
+
+### Convert and Send to Kindle
+
+```bash
+uv run python -m src "/path/to/file.md" --send
+uv run python -m src "/path/to/folder/" --send
+```
+
+### Skip Images (faster)
+
+```bash
+uv run python -m src "/path/to/folder/" --no-images --send
+```
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--send` | Send to Kindle via email after conversion | - |
+| `--no-images` | Skip downloading and embedding images | - |
+| `--kindle-email` | Kindle email address | leoomo_1984@kindle.com |
+| `--sender-email` | Your email address | zengleo@163.com |
+| `--password` | Email password/auth code | (configured) |
+| `--smtp-server` | SMTP server | smtp.163.com |
+| `--smtp-port` | SMTP port | 465 |
 
 ## Workflow
 
-When user asks to convert markdown to EPUB:
+1. **Check input type:**
+   - File → single file conversion
+   - Folder → batch merge all `.md` files
 
-1. **Check if it's a file or folder:**
-   - File: `convert_file(input_path, output_path)`
-   - Folder: `convert_folder(input_path, output_path)`
+2. **Auto-processing:**
+   - Parse YAML frontmatter (title, author, date)
+   - Convert `[[WikiLinks]]` to HTML links
+   - Download & optimize external images (concurrent, 4 workers, 8s timeout)
+   - Split into chapters at H1/H2 headings
+   - Generate table of contents
 
-2. **The converter automatically:**
-   - Parses YAML frontmatter (title, author, date, tags)
-   - Converts Obsidian wikilinks (`[[Note]]`) to HTML links
-   - Downloads external images and embeds them
-   - Optimizes images for e-readers (resize to max 1200px, JPEG compression)
-   - Splits content into chapters at H1/H2 headings
-   - Generates table of contents
-
-3. **Output:** EPUB file with adaptive typography
+3. **Output:** EPUB file + optional Kindle email delivery
 
 ### With iReader Upload
 
 If user mentions "ireader":
 
 ```bash
-# Find iReader device
-python3 ~/.claude/skills/md2epub/scripts/find_ireader.py
+IREADER_IP="192.168.3.17"
 
-# Upload EPUB
-curl -X POST "http://<ip>:10123/test.php?action=addBook" \
+if ! curl -s --connect-timeout 3 "http://${IREADER_IP}:10123/" > /dev/null 2>&1; then
+    IREADER_IP=$(python3 ~/.claude/skills/md2epub/scripts/find_ireader.py 2>/dev/null)
+fi
+
+curl -X POST "http://${IREADER_IP}:10123/test.php?action=addBook" \
   -F "Filename=book.epub" \
   -F "Filedata=@book.epub" \
   -F "Upload=Submit Query"
@@ -54,31 +94,18 @@ curl -X POST "http://<ip>:10123/test.php?action=addBook" \
 
 ## Examples
 
-**Single file:**
-```
-Convert "Clippings/article.md" to EPUB
-```
-
-**Folder batch:**
-```
-Convert all markdown in "Clippings/" to a single EPUB
-```
-
-**With iReader:**
-```
-Convert "book.md" to EPUB and upload to ireader
-```
+- `"Convert article.md to EPUB"`
+- `"Merge all markdown in Notes/ to one ebook"`
+- `"Convert Clippings/ and send to Kindle"`
+- `"Convert to EPUB and upload to ireader"`
 
 ## Features
 
-- **Obsidian Support**: Handles wikilinks, frontmatter, tags
-- **Image Handling**: Auto-downloads external images, optimizes for e-readers
-- **Adaptive Typography**: Reflowable text, adjustable fonts, dark mode support
-- **Auto Chapter Split**: Splits at H1/H2 headings
-- **Table of Contents**: Auto-generated from document structure
-
-## Dependencies
-
-```
-pip install ebooklib markdown Pillow requests PyYAML
-```
+- Obsidian wikilinks & frontmatter support
+- Concurrent image download with timeout protection
+- `--no-images` flag for faster conversion
+- Hierarchical TOC for folder conversion
+- Kindle email delivery built-in
+- iReader upload support
+- Chinese language optimized
+- Managed by uv, single venv

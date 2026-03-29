@@ -395,17 +395,56 @@ Read `config.language` from the JSON:
 
 ### Step 6: Deliver
 
-Read `config.delivery.method` from the JSON:
+Read `config.delivery.method` and `config.emailHtml` (top-level, not in delivery object) from the JSON:
 
-**If "telegram" or "email":**
+**If "telegram":**
 ```bash
 echo '<your digest text>' > /tmp/fb-digest.txt
 cd ${CLAUDE_SKILL_DIR}/scripts && node deliver.js --file /tmp/fb-digest.txt 2>/dev/null
 ```
-If delivery fails, show the digest in the terminal as fallback.
+
+**If "email" with `emailHtml: true` (DEFAULT):**
+Generate THREE versions:
+
+1. **Plain text** (`/tmp/fb-digest-plain.txt`): Short summary like "AI Builders Digest - March 26, 2026. 20 builders, 1 podcast. See HTML version!"
+
+2. **HTML** (`/tmp/fb-digest.html`): Beautiful, Gmail-friendly HTML with inline CSS:
+   - Max width 600px, centered
+   - Professional header with blue accent
+   - Card-based layout with subtle borders
+   - Blue links, gray background for Chinese translations
+   - Responsive design, no external CSS/JS
+   - Example structure:
+     ```html
+     <body style="margin: 0; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff; color: #1a1a1a; line-height: 1.6;">
+     <div style="max-width: 600px; margin: 0 auto;">
+       <div style="border-bottom: 3px solid #0066cc; padding-bottom: 20px; margin-bottom: 30px;">
+         <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 10px 0; color: #000000;">AI Builders Digest</h1>
+         <p style="font-size: 16px; color: #666666; margin: 0;">March 26, 2026</p>
+       </div>
+       <!-- Content cards with inline styles -->
+     </div>
+     </body>
+     ```
+
+3. **Markdown** (`/tmp/fb-digest.md`): The FULL digest content in Markdown format (same content you would output for stdout mode). This file is used for Obsidian vault saving. Do NOT write a placeholder here — it must contain the complete digest.
+
+Then deliver:
+```bash
+cd ${CLAUDE_SKILL_DIR}/scripts && node deliver.js --file /tmp/fb-digest-plain.txt --html /tmp/fb-digest.html --md /tmp/fb-digest.md 2>/dev/null
+```
+
+**If "email" with `emailHtml: false` or missing:**
+Plain text only:
+```bash
+echo '<your digest text>' > /tmp/fb-digest.txt
+cd ${CLAUDE_SKILL_DIR}/scripts && node deliver.js --file /tmp/fb-digest.txt 2>/dev/null
+```
 
 **If "stdout" (default):**
 Just output the digest directly.
+
+If delivery fails, show the digest in the terminal as fallback.
 
 ---
 
@@ -431,6 +470,8 @@ open an issue at https://github.com/zarazhangrui/follow-builders."
 - "Switch to Telegram/email" → Update `delivery.method` in config.json, guide user through setup if needed
 - "Change my email" → Update `delivery.email` in config.json
 - "Send to this chat instead" → Set `delivery.method` to "stdout"
+- "Use plain text emails" → Set `delivery.emailHtml` to `false` in config.json
+- "Use HTML emails" → Set `delivery.emailHtml` to `true` in config.json (DEFAULT)
 
 ### Prompt Changes
 When a user wants to customize how their digest sounds, copy the relevant prompt

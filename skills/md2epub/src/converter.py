@@ -9,7 +9,7 @@ from .image_handler import process_images
 from .epub_builder import build_epub
 
 
-def convert_file(input_path: Path, output_path: Optional[Path] = None) -> Path:
+def convert_file(input_path: Path, output_path: Optional[Path] = None, no_images: bool = False) -> Path:
     """Convert a single markdown file to EPUB."""
 
     if output_path is None:
@@ -30,7 +30,10 @@ def convert_file(input_path: Path, output_path: Optional[Path] = None) -> Path:
 
     # Process images
     base_path = input_path.parent
-    body, images = process_images(body, base_path)
+    if no_images:
+        images = {}
+    else:
+        body, images = process_images(body, base_path)
 
     # Split into chapters
     chapters = split_into_chapters(body)
@@ -83,11 +86,15 @@ def split_into_chapters(content: str) -> List[dict]:
     return chapters
 
 
-def convert_folder(folder_path: Path, output_path: Optional[Path] = None) -> Path:
+def convert_folder(folder_path: Path, output_path: Optional[Path] = None, no_images: bool = False) -> Path:
     """Convert all markdown files in a folder to a single EPUB."""
 
-    # Find all markdown files
-    md_files = sorted(folder_path.glob('*.md'))
+    # Find all markdown files, sorted by creation time (newest first)
+    md_files = sorted(
+        folder_path.glob('*.md'),
+        key=lambda f: f.stat().st_birthtime,
+        reverse=True
+    )
 
     if not md_files:
         raise ValueError(f"No markdown files found in {folder_path}")
@@ -98,9 +105,12 @@ def convert_folder(folder_path: Path, output_path: Optional[Path] = None) -> Pat
     # Collect parts (each file is a part with sub-chapters)
     parts = []
     all_images = {}
+    image_map = {}
     metadata = {'title': folder_path.name, 'author': 'Unknown'}
 
-    for md_file in md_files:
+    total = len(md_files)
+    for i, md_file in enumerate(md_files, 1):
+        print(f"Processing {i}/{total}: {md_file.name}")
         content = md_file.read_text(encoding='utf-8')
 
         # Parse frontmatter from first file only
@@ -117,8 +127,11 @@ def convert_folder(folder_path: Path, output_path: Optional[Path] = None) -> Pat
         body = convert_wikilinks(body)
 
         # Process images
-        body, images = process_images(body, folder_path, all_images)
-        all_images.update(images)
+        if no_images:
+            images = {}
+        else:
+            body, images = process_images(body, folder_path, image_map)
+            all_images.update(images)
 
         # Convert to HTML and split into chapters
         chapters = split_into_chapters(body)
@@ -129,6 +142,7 @@ def convert_folder(folder_path: Path, output_path: Optional[Path] = None) -> Pat
             'chapters': chapters
         })
 
+    print(f"Building EPUB with {total} articles...")
     # Build EPUB with hierarchical structure
     build_epub(metadata, parts, all_images, output_path, hierarchical=True)
 

@@ -10,6 +10,7 @@
 //   echo "digest text" | node deliver.js
 //   node deliver.js --message "digest text"
 //   node deliver.js --file /path/to/digest.txt
+//   node deliver.js --file /path/to/digest.txt --html /path/to/digest.html --md /path/to/digest.md
 //
 // The script reads delivery config from ~/.follow-builders/config.json
 // and API keys from ~/.follow-builders/.env
@@ -25,6 +26,12 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { config as loadEnv } from 'dotenv';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // -- Constants ---------------------------------------------------------------
 
@@ -64,6 +71,16 @@ function getHtmlFilePath() {
   const htmlIdx = args.indexOf('--html');
   if (htmlIdx !== -1 && args[htmlIdx + 1]) {
     return args[htmlIdx + 1];
+  }
+  return null;
+}
+
+// Get Markdown content from --md flag if provided (used for Obsidian save)
+function getMdFilePath() {
+  const args = process.argv.slice(2);
+  const mdIdx = args.indexOf('--md');
+  if (mdIdx !== -1 && args[mdIdx + 1]) {
+    return args[mdIdx + 1];
   }
   return null;
 }
@@ -163,7 +180,52 @@ async function sendEmail(text, apiKey, toEmail, html = null) {
   }
 }
 
-// -- Main --------------------------------------------------------------------
+// -- Save to Obsidian --------------------------------------------------------
+
+// Saves the digest to the user's Obsidian vault as a markdown file.
+// Calls save-to-obsidian.js with the content and date.
+function saveToObsidian(text, stats = null) {
+  return new Promise((resolve, reject) => {
+    const scriptPath = join(__dirname, 'save-to-obsidian.js');
+    const args = ['--date', new Date().toISOString()];
+
+    if (stats) {
+      args.push('--stats', JSON.stringify(stats));
+    }
+
+    const child = spawn('node', [scriptPath, ...args], {
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr || `save-to-obsidian.js exited with code ${code}`));
+      } else {
+        try {
+          const result = JSON.parse(stdout);
+          resolve(result);
+        } catch (e) {
+          resolve({ status: 'ok', message: stdout.trim() });
+        }
+      }
+    });
+
+    // Write content to stdin
+    child.stdin.write(text);
+    child.stdin.end();
+  });
+}
 
 async function main() {
   // Load env and config
@@ -184,12 +246,21 @@ async function main() {
     htmlContent = await readFile(htmlFile, 'utf-8');
   }
 
+  // Check for Markdown file (used for Obsidian save when emailHtml is enabled)
+  let mdContent = null;
+  const mdFile = getMdFilePath();
+  if (mdFile && existsSync(mdFile)) {
+    mdContent = await readFile(mdFile, 'utf-8');
+  }
+
   if (!digestText || digestText.trim().length === 0) {
     console.log(JSON.stringify({ status: 'skipped', reason: 'Empty digest text' }));
     return;
   }
 
   try {
+    let deliveryResult = null;
+
     switch (delivery.method) {
       case 'telegram': {
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -197,11 +268,11 @@ async function main() {
         if (!botToken) throw new Error('TELEGRAM_BOT_TOKEN not found in .env');
         if (!chatId) throw new Error('delivery.chatId not found in config.json');
         await sendTelegram(digestText, botToken, chatId);
-        console.log(JSON.stringify({
+        deliveryResult = {
           status: 'ok',
           method: 'telegram',
           message: 'Digest sent to Telegram'
-        }));
+        };
         break;
       }
 
@@ -211,11 +282,11 @@ async function main() {
         if (!apiKey) throw new Error('RESEND_API_KEY not found in .env');
         if (!toEmail) throw new Error('delivery.email not found in config.json');
         await sendEmail(digestText, apiKey, toEmail, htmlContent);
-        console.log(JSON.stringify({
+        deliveryResult = {
           status: 'ok',
           method: 'email',
           message: `Digest sent to ${toEmail}`
-        }));
+        };
         break;
       }
 
@@ -223,8 +294,32 @@ async function main() {
       default:
         // Just print to terminal — the agent or OpenClaw handles delivery
         console.log(digestText);
+        deliveryResult = { status: 'ok', method: 'stdout' };
         break;
     }
+
+    // Save to Obsidian if enabled (after main delivery)
+    if (config.obsidian?.enabled) {
+      try {
+        const stats = config._stats || null; // Stats passed via config if available
+        // Prefer dedicated Markdown content (--md flag) over plain text (--file flag)
+        const obsidianText = (mdContent && mdContent.trim()) ? mdContent : digestText;
+        const obsidianResult = await saveToObsidian(obsidianText, stats);
+        if (deliveryResult) {
+          deliveryResult.obsidian = obsidianResult;
+        }
+      } catch (obsidianErr) {
+        // Log but don't fail the main delivery if Obsidian save fails
+        if (deliveryResult) {
+          deliveryResult.obsidian = { status: 'error', message: obsidianErr.message };
+        }
+      }
+    }
+
+    if (deliveryResult && delivery.method !== 'stdout') {
+      console.log(JSON.stringify(deliveryResult));
+    }
+
   } catch (err) {
     console.log(JSON.stringify({
       status: 'error',
