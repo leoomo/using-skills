@@ -107,9 +107,12 @@ parent: drawio
 > | 方式 | 命令 |
 > |------|------|
 > | 嵌入图片到文件 | `drawio-tool.py embed-image <drawio> <图片> <x> <y> <宽> <高>` |
-> | 生成 XML 片段 | `drawio-tool.py prepare-xml <图片> <宽> <高> --x N --y N` |
+> | 生成 XML 片段 | `drawio-tool.py prepare-xml <图片> <宽> <高> --x N --y N -o /tmp/xxx.xml` |
+> | 生成 base64 | `drawio-tool.py prepare <图片> <宽> <高> -o /tmp/xxx.txt` |
 > | 修复已有文件 | `drawio-tool.py fix-base64 <drawio>` |
 > | 验证布局 | `drawio-tool.py validate <drawio>` |
+>
+> **所有中间产物（base64 txt、XML 片段等）必须输出到 `/tmp/`，禁止写入项目目录。**
 
 > **⚠️ 背景知识：draw.io 的 `;base64` 陷阱**
 >
