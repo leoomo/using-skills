@@ -249,7 +249,7 @@ For the XML Schema Definition (XSD): https://www.drawio.com/assets/mxfile.xsd
 draw.io supports embedded images using base64 data URIs in cell styles:
 
 ```xml
-<mxCell id="img1" value="" style="image;image=data:image/png;base64,{base64_data}" vertex="1">
+<mxCell id="img1" value="" style="image;image=data:image/png,{base64_data}" vertex="1">
   <mxGeometry width="100" height="100" as="geometry"/>
 </mxCell>
 ```

@@ -13,7 +13,7 @@
 
 **使用方式：**
 1. 用 `python3 drawio-tool.py prepare <图片路径> <宽> <高>` 生成 base64
-2. 将模板中的 `{{IMAGE_MC_L430}}` 替换为 `data:image/png;base64,<生成的base64>`
+2. 将模板中的 `{{IMAGE_MC_L430}}` 替换为 `data:image/png,<生成的base64>`（注意：**不要**加 `;base64`）
 3. 或直接替换为图片的绝对路径（仅在 draw.io 编辑器中可用，CLI 导出会丢失）
 
 ## 模板列表

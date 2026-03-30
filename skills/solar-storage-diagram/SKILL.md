@@ -99,29 +99,23 @@ parent: drawio
 
 ## 嵌入图片工作流
 
-> **⚠️ 致命陷阱：draw.io 中 base64 图片 data URI 格式**
+> **🔒 强制规则：图片字符串必须由脚本生成**
 >
-> draw.io 的 style 属性用 `;` 作为分隔符。当图片 data URI 写成标准格式 `data:image/jpeg;base64,<数据>` 时，
-> draw.io 会在 `;` 处错误拆分，把 `base64,<数据>` 当成独立的（无效）样式属性，导致**图片完全不显示**。
+> Claude **禁止手动编写** `data:image/...` 格式字符串。所有图片嵌入必须通过 `drawio-tool.py` 脚本完成。
+> 脚本已内置正确的 data URI 格式，无需人工记忆避坑规则。
 >
-> **正确写法：去掉 `;base64`，base64 数据直接跟在逗号后面**
+> | 方式 | 命令 |
+> |------|------|
+> | 嵌入图片到文件 | `drawio-tool.py embed-image <drawio> <图片> <x> <y> <宽> <高>` |
+> | 生成 XML 片段 | `drawio-tool.py prepare-xml <图片> <宽> <高> --x N --y N` |
+> | 修复已有文件 | `drawio-tool.py fix-base64 <drawio>` |
+> | 验证布局 | `drawio-tool.py validate <drawio>` |
+
+> **⚠️ 背景知识：draw.io 的 `;base64` 陷阱**
 >
-> | 写法 | 结果 | 说明 |
-> |------|------|------|
-> | `data:image/jpeg;base64,/9j/...` | **图片不显示** | `;` 被 draw.io 当成 style 属性分隔符 |
-> | `data:image/jpeg,/9j/...` | **图片正常显示** | base64 数据直接跟逗号，无分号 |
->
-> **用 Python 写入 drawio 时务必注意：**
-> ```python
-> # ❌ 错误 - 标准数据 URI 格式，但 draw.io 无法正确解析
-> image_data = f"data:image/{fmt};base64,{b64_string}"
->
-> # ✅ 正确 - 去掉分号，直接用逗号连接
-> image_data = f"data:image/{fmt},{b64_string}"
-> ```
->
-> 此问题同时影响：(1) draw.io 编辑器内显示 (2) CLI 导出 (3) 程序化生成的 drawio 文件。
-> 只要 XML style 属性中出现 `;base64`，图片就会失效。
+> draw.io 的 style 属性用 `;` 作分隔符，标准 data URI 格式 `data:image/png;base64,<数据>` 中的 `;`
+> 会被误拆导致图片不显示。脚本已自动使用 `data:image/png,<数据>` 格式（无分号），无需人工干预。
+> 如遇已有文件图片不显示，运行 `drawio-tool.py fix-base64 <文件>` 一键修复。
 
 当架构图中需要嵌入产品图片、设备照片等自定义图片时，使用 `references/drawio-tool.py` 工具链完成。
 
@@ -198,7 +192,7 @@ with open('diagram.drawio', 'r') as f:
     content = f.read()
 
 # 查找所有嵌入图片的 base64 长度
-for match in re.finditer(r'data:image/(\w+);base64,([A-Za-z0-9+/=]+)', content):
+for match in re.finditer(r'data:image/(\w+)(?:;base64)?,([A-Za-z0-9+/=]+)', content):
     fmt, b64 = match.groups()
     decoded_len = len(base64.b64decode(b64))
     if decoded_len < 10000:  # 小于 10KB 说明可能是压缩图
@@ -219,7 +213,7 @@ python3 references/drawio-tool.py prepare /path/to/original.jpg 843 812 -o full_
 
 ### 第四步：导出（SVG 中转法）
 
-**已知问题：** draw.io 桌面版 CLI 导出时会丢失 style 中的 base64 数据（`;base64,` 被误判为属性分隔符）。在 draw.io 编辑器中显示正常，但 CLI 导出为空白。
+**已知问题：** draw.io 桌面版 CLI 导出时可能丢失 style 中的 base64 图片数据。在 draw.io 编辑器中显示正常，但 CLI 导出为空白。
 
 **解决：** 使用 `drawio-tool.py export`，自动完成 SVG 中转导出：
 
@@ -245,8 +239,8 @@ python3 references/drawio-tool.py export diagram.drawio -o output.png --width 24
 
 | 问题 | 原因 | 解决 |
 |------|------|------|
-| **图片完全不显示**（编辑器内+导出） | `data:image/jpeg;base64,` 中的 `;` 被 draw.io 当作 style 属性分隔符，base64 数据被截断 | **去掉 `;base64`**，改用 `data:image/jpeg,<base64数据>`。这是最常见、最隐蔽的坑！ |
-| CLI 导出图片空白 | `;base64,` 被当作 style 分隔符 | 用 `drawio-tool.py export`（SVG 中转法） |
+| **图片完全不显示**（编辑器内+导出） | `;base64` 格式导致 draw.io 解析错误 | 运行 `drawio-tool.py fix-base64 <drawio>` 自动修复 |
+| CLI 导出图片空白 | draw.io CLI 导出丢失 base64 | 用 `drawio-tool.py export`（SVG 中转法） |
 | 图片显示为小图标/占位图 | draw.io 导入时自动压缩图片 | 重新嵌入原始完整分辨率图片 |
 | 图片与组件遮挡 | y 坐标计算错误，间距不足 | 用 `drawio-tool.py validate` 检测重叠 |
 | PIL 保存 PNG 崩溃 | CMYK/RGBA/灰度模式不兼容 PNG | `drawio-tool.py` 自动 convert('RGB') |

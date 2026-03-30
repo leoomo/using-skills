@@ -84,7 +84,7 @@ def cmd_prepare_xml(args):
     xml = (
         f'<mxCell id="{cell_id}" value="" '
         f'style="image;verticalLabelPosition=bottom;verticalAlign=top;'
-        f'aspect=fixed;image=data:image/png;base64,{b64}" '
+        f'aspect=fixed;image=data:image/png,{b64}" '
         f'vertex="1" parent="1">\n'
         f'  <mxGeometry x="{args.x}" y="{args.y}" '
         f'width="{args.width}" height="{args.height}" as="geometry"/>\n'
@@ -139,7 +139,7 @@ def cmd_embed_image(args):
         content = f.read()
 
     # 构建mxCell XML（使用 shape=image 格式，这是 draw.io 正确显示图片的必要条件）
-    mxcell_xml = f'''    <mxCell id="{cell_id}" value="" style="shape=image;image=data:image/png;base64,{b64};verticalLabelPosition=bottom;verticalAlign=top;aspect=fixed" vertex="1" parent="1">
+    mxcell_xml = f'''    <mxCell id="{cell_id}" value="" style="shape=image;image=data:image/png,{b64};verticalLabelPosition=bottom;verticalAlign=top;aspect=fixed" vertex="1" parent="1">
       <mxGeometry x="{args.x}" y="{args.y}" width="{args.width}" height="{args.height}" as="geometry" />
     </mxCell>
 '''
@@ -281,14 +281,22 @@ def cmd_validate(args):
     for elem in tree.getroot().iter():
         style = elem.get('style', '')
         if 'shape=image' in style:
-            if 'base64,' in style:
-                m = re.search(r'base64,([A-Za-z0-9+/=]+)', style)
-                if m and len(m.group(1)) < 100:
+            # 兼容两种格式：data:image/png,DATA 和 data:image/png;base64,DATA
+            m = re.search(r'image=data:image/[^;,]+(?:;base64)?,([A-Za-z0-9+/=]+)', style)
+            if m:
+                if len(m.group(1)) < 100:
                     issues.append(
                         f"SUSPICIOUS_IMAGE: '{elem.get('id')}' has very short "
                         f"base64 data ({len(m.group(1))} chars), may be corrupt"
                     )
-            elif 'image=' in style and 'base64' not in style:
+                # 检查是否使用了 ;base64 格式（draw.io 中会导致图片不显示）
+                if ';base64,' in style:
+                    issues.append(
+                        f"BASE64_FORMAT: '{elem.get('id')}' uses ';base64,' in style - "
+                        f"draw.io treats ';' as style separator, image will not display. "
+                        f"Run 'drawio-tool.py fix-base64' to fix."
+                    )
+            elif 'image=' in style and 'data:image' not in style:
                 # 文件路径引用（不一定是问题，但需注意导出兼容性）
                 path_match = re.search(r'image=([^;]+)', style)
                 if path_match and not path_match.group(1).startswith('data:'):
@@ -313,6 +321,49 @@ def cmd_validate(args):
         print("PASS: No layout issues detected.")
 
 
+def cmd_fix_base64(args):
+    """修复 drawio 文件中的 ;base64 格式问题。
+
+    将 image=data:image/xxx;base64,DATA 替换为 image=data:image/xxx,DATA，
+    解决 draw.io 把 ;base64 中的 ; 当成 style 属性分隔符导致图片不显示的问题。
+    """
+    if not os.path.isfile(args.drawio):
+        print(f"ERROR: File not found: {args.drawio}")
+        sys.exit(1)
+
+    with open(args.drawio, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 统计匹配数
+    count = len(re.findall(r'(image=data:image/[^;,]+);base64,', content))
+
+    if count == 0:
+        print("No ;base64 issues found. File is already correct.")
+        return
+
+    if args.dry_run:
+        print(f"DRY RUN: Would fix {count} image(s) by removing ';base64' from data URIs")
+        # 显示匹配位置
+        for m in re.finditer(r'(image=data:image/[^;,]+);base64,', content):
+            pos = m.start()
+            line = content[:pos].count('\n') + 1
+            print(f"  Line ~{line}: ...{content[max(0, pos-20):pos+40]}...")
+        return
+
+    # 执行替换
+    fixed = re.sub(
+        r'(image=data:image/[^;,]+);base64,',
+        r'\1,',
+        content
+    )
+
+    with open(args.drawio, 'w', encoding='utf-8') as f:
+        f.write(fixed)
+
+    print(f"Fixed {count} image(s): removed ';base64' from data URIs")
+    print(f"  File: {args.drawio}")
+
+
 # ---------------------------------------------------------------------------
 # SVG 中转导出
 # ---------------------------------------------------------------------------
@@ -327,9 +378,9 @@ def extract_images(drawio_path: str) -> dict:
     for elem in tree.getroot().iter():
         style = elem.get('style', '')
         cell_id = elem.get('id', '')
-        # 匹配 data:image/xxx;base64,DATA 模式
+        # 匹配 data:image/xxx,DATA 模式（兼容 ;base64 和无 ;base64 两种格式）
         match = re.search(
-            r'image=data:image/[^;]+;base64,([A-Za-z0-9+/=\n]+)',
+            r'image=data:image/[^;,]+(?:;base64)?,([A-Za-z0-9+/=\n]+)',
             style
         )
         if match and cell_id:
@@ -547,6 +598,12 @@ def main():
     p_export.add_argument('--width', type=int, default=2400,
                          help='输出宽度（px，默认 2400）')
 
+    # fix-base64
+    p_fix = subparsers.add_parser('fix-base64', help='修复 drawio 文件中的 ;base64 格式问题')
+    p_fix.add_argument('drawio', help='drawio 文件路径')
+    p_fix.add_argument('--dry-run', action='store_true',
+                       help='仅预览，不修改文件')
+
     args = parser.parse_args()
 
     if args.command == 'prepare':
@@ -559,6 +616,8 @@ def main():
         cmd_validate(args)
     elif args.command == 'export':
         cmd_export(args)
+    elif args.command == 'fix-base64':
+        cmd_fix_base64(args)
     else:
         parser.print_help()
         sys.exit(1)
